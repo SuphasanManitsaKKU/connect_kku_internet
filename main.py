@@ -41,45 +41,30 @@ def log(inp: str):
 print(f"username: {username} password: {password}")
 log(f"username: {username} password: {password}")
 
-def start():
-    playwright = sync_playwright().start()
-    browser = playwright.chromium.launch()
-    # browser = playwright.chromium.launch(headless=False)
-    return [playwright,browser]
-
 def enable(inp:str):
     try:
-        [playwright,browser] = start()
-        page = browser.new_page()
-        page.goto("https://login.kku.ac.th/")
-        page.locator("#username").click()
-        page.keyboard.type(f"{username}",delay=10)
-        page.keyboard.press("Tab")
-        page.keyboard.type(f"{password}",delay=10)
-        page.keyboard.press("Enter")
-        time.sleep(1)
-        playwright.stop()
+        # URL of the login form's action
+        login_url = "https://nac10.kku.ac.th/login"
 
-        print(f"{inp}: internet connect: connected")
-        log("internet connect: connected")
+        # Data to be sent with the POST request
+        login_data = {
+            'username': username,
+            'password': password,
+        }
+
+        # Send the POST request
+        response = requests.post(login_url, data=login_data)
+
+        # Check if the login was successful
+        if "You are logged in" in response.text:
+            print(f"{inp}: internet connect: connected")
+            log("internet connect: connected")
+        else:
+            a = 0 / 0
+
     except:
         print(f"{inp}: internet connect: error can't connect")
         log("internet connect: error can't connect")
-
-def disable(inp:str):
-    try:
-        [playwright,browser] = start()
-        page = browser.new_page()
-        page.goto("https://login.kku.ac.th/status")
-        page.locator("#btnLogOff").click()
-        time.sleep(1)
-        playwright.stop()
-
-        print(f"{inp}: internet connect: disconnected")
-        log("internet connect: disconnected")
-    except:
-        print(f"{inp}: internet connect: error can't disconnect")
-        log("internet connect: error can't disconnect")
 
 def check_internet_connection(inp:str,count:int):
     try:
