@@ -1,6 +1,9 @@
 import time
 import requests
+import os
 
+fail = 0
+status = "ok"
 def check_internet_connection():
     try:
         response = requests.get("https://www.google.com", timeout=1)
@@ -31,5 +34,12 @@ def enable():
 
 while(True):
     if check_internet_connection() == False:
+        status = "no ok"
+        fail += 1
         enable()
+    else:
+        status = "ok"
+    os.system("cls")
+    print(f'Status : {status}')
+    print(f'Fail : {fail}')
     time.sleep(5)
