@@ -39,7 +39,7 @@ while(True):
         enable()
     else:
         status = "ok"
-    os.system("cls")
+    os.system("clear")
     print(f'Status : {status}')
     print(f'Fail : {fail}')
     time.sleep(5)
