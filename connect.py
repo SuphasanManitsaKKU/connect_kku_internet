@@ -17,8 +17,8 @@ def enable():
 
         # Data to be sent with the POST request
         login_data = {
-            'username': "6533801529",
-            'password': "Mikuto0807494698",
+            'username': os.getenv('USERNAME'),
+            'password': os.getenv('PASSWORD'),
         }
 
         # Send the POST request
