@@ -1,6 +1,9 @@
 import time
 import requests
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 fail = 0
 status = "ok"
@@ -17,8 +20,8 @@ def enable():
 
         # Data to be sent with the POST request
         login_data = {
-            'username': os.getenv('USERNAME'),
-            'password': os.getenv('PASSWORD'),
+            'username': os.getenv('KKU_USERNAME'),
+            'password': os.getenv('KKU_PASSWORD'),
         }
 
         # Send the POST request
@@ -39,7 +42,7 @@ while(True):
         enable()
     else:
         status = "ok"
-    os.system("clear")
+    # os.system("clear")
     print(f'Status : {status}')
     print(f'Fail : {fail}')
     time.sleep(5)
