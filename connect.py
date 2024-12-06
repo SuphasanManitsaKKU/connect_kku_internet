@@ -112,3 +112,6 @@ while(True):
     print(f'Status : {status}')
     print(f'Fail : {fail}')
     time.sleep(1)
+
+# cp .env.example .env
+# pip install -r requirements.txt
