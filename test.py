@@ -1,15 +1,6 @@
-import time
 import requests
-from dotenv import load_dotenv
-import os
+import time
 import random
-
-load_dotenv()
-
-fail = 0
-status = "ok"
-
-
 check_list = [
     "https://www.google.com",
     "https://www.youtube.com",
@@ -73,42 +64,37 @@ check_list = [
 ]
 
 
-def check_internet_connection():
+# response = requests.get("https://www.oracle.com", timeout=1)
+# print(response.status_code)
+
+
+
+while True:
+    set_list = random.choice(check_list)
     try:
-        response = requests.get(random.choice(check_list), timeout=3)
-        return True
-    except:
-        return False
-
-def enable():
-    try:
-        login_url = "https://nac10.kku.ac.th/login"
-
-        # Data to be sent with the POST request
-        login_data = {
-            'username': os.getenv('KKU_USERNAME'),
-            'password': os.getenv('KKU_PASSWORD'),
-        }
-
-        # Send the POST request
-        response = requests.post(login_url, data=login_data)
-
-        # Check if the login was successful
-        if "You are logged in" in response.text:
-            print("connected")
-        else:
-            print("can't connext")
-    except:
-        pass
-
-while(True):
-    if check_internet_connection() == False:
-        status = "no ok"
-        fail += 1
-        enable()
-    else:
-        status = "ok"
-    print("\033c", end="")
-    print(f'Status : {status}')
-    print(f'Fail : {fail}')
+        response = requests.get(set_list, timeout=3)
+        print(response.status_code)
+    except requests.exceptions.ReadTimeout:
+        print(set_list + ": Timeout")
+        break
     time.sleep(1)
+
+# def check_url_status(urls):
+#     results = {}
+#     for url in urls:
+#         try:
+#             response = requests.get(url, timeout=1)
+#             if response.status_code == 200:
+#                 results[url] = "Accessible"
+#             else:
+#                 results[url] = f"Error: {response.status_code}"
+#         except requests.RequestException as e:
+#             results[url] = f"Failed: {str(e)}"
+#     return results
+
+# # ตรวจสอบ URL ทั้งหมด
+# results = check_url_status(check_list)
+
+# # แสดงผลลัพธ์
+# for url, status in results.items():
+#     print(f"{url}: {status}")
