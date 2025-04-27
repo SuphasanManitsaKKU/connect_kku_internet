@@ -3,12 +3,30 @@ import requests
 from dotenv import load_dotenv
 import os
 import random
+import json
+import threading
+from datetime import datetime
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 load_dotenv()
 
 fail = 0
 status = "ok"
+log_file = "fail_log.json"
+current_count = 0
 
+# Initialize the log file if not exists
+if not os.path.exists(log_file):
+    with open(log_file, 'w') as f:
+        json.dump({
+            "total_count": 0,
+            "logs": []
+        }, f, indent=2)
+
+# Load total_count ตอนเริ่มสคริปต์
+with open(log_file, 'r') as f:
+    data = json.load(f)
+    current_count = data.get("total_count", 0)
 
 check_list = [
     "https://www.google.com",
@@ -72,6 +90,22 @@ check_list = [
     "https://www.hubspot.com"
 ]
 
+def log_fail():
+    global current_count
+    with open(log_file, 'r+') as f:
+        data = json.load(f)
+        logs = data.get("logs", [])
+        current_count += 1
+        logs.append({
+            "count": current_count,
+            "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        })
+        f.seek(0)
+        json.dump({
+            "total_count": current_count,
+            "logs": logs
+        }, f, indent=2)
+        f.truncate()
 
 def check_internet_connection():
     try:
@@ -83,35 +117,70 @@ def check_internet_connection():
 def enable():
     try:
         login_url = "https://nac10.kku.ac.th/login"
-
-        # Data to be sent with the POST request
         login_data = {
             'username': os.getenv('KKU_USERNAME'),
             'password': os.getenv('KKU_PASSWORD'),
         }
-
-        # Send the POST request
         response = requests.post(login_url, data=login_data)
-
-        # Check if the login was successful
         if "You are logged in" in response.text:
             print("connected")
         else:
-            print("can't connext")
+            print("can't connect")
     except:
         pass
 
-while(True):
-    if check_internet_connection() == False:
-        status = "no ok"
-        fail += 1
-        enable()
-    else:
-        status = "ok"
-    print("\033c", end="")
-    print(f'Status : {status}')
-    print(f'Fail : {fail}')
-    time.sleep(1)
+def internet_monitor():
+    global fail, status
+    while True:
+        if not check_internet_connection():
+            status = "no ok"
+            fail += 1
+            log_fail()
+            enable()
+        else:
+            status = "ok"
+        print("\033c", end="")
+        print(f'Status : {status}')
+        print(f'Fail : {fail}')
+        time.sleep(1)
+
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/':
+            try:
+                with open(log_file, 'r') as f:
+                    data = f.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(data)))
+                self.end_headers()
+                self.wfile.write(data.encode())
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(b'Internal Server Error')
+        else:
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b'Not Found')
+
+def run_server():
+    server_address = ('', 80)
+    httpd = HTTPServer(server_address, SimpleHandler)
+    print('Server running at http://localhost:80/')
+    httpd.serve_forever()
+
+# ---------------------- START MAIN -----------------------
+
+if __name__ == "__main__":
+    t1 = threading.Thread(target=internet_monitor)
+    t2 = threading.Thread(target=run_server)
+
+    t1.start()
+    t2.start()
+
+    t1.join()
+    t2.join()
 
 # cp .env.example .env
 # pip install -r requirements.txt
