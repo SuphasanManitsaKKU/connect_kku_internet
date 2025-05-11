@@ -19,6 +19,7 @@ current_count = 0
 if not os.path.exists(log_file):
     with open(log_file, 'w') as f:
         json.dump({
+            "status": "ok",
             "total_count": 0,
             "logs": []
         }, f, indent=2)
@@ -96,15 +97,30 @@ def log_fail():
         data = json.load(f)
         logs = data.get("logs", [])
         current_count += 1
-        logs.append({
+
+        new_log = {
             "count": current_count,
             "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        })
-        f.seek(0)
-        json.dump({
+        }
+
+        logs.insert(0, new_log)
+
+        data = {
+            "status": "no ok",
             "total_count": current_count,
             "logs": logs
-        }, f, indent=2)
+        }
+
+        f.seek(0)
+        json.dump(data, f, indent=2)
+        f.truncate()
+
+def log_status_ok():
+    with open(log_file, 'r+') as f:
+        data = json.load(f)
+        data["status"] = "ok"
+        f.seek(0)
+        json.dump(data, f, indent=2)
         f.truncate()
 
 def check_internet_connection():
@@ -139,6 +155,8 @@ def internet_monitor():
             enable()
         else:
             status = "ok"
+            log_status_ok()
+
         print("\033c", end="")
         print(f'Status : {status}')
         print(f'Fail : {fail}')
